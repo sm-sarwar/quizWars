@@ -10,6 +10,7 @@ const QuizApp = () => {
   const [timer, setTimer] = useState(30);
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [quizStarted, setQuizStarted] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   useEffect(() => {
     fetch("/QuizData.json")
@@ -29,21 +30,42 @@ const QuizApp = () => {
 
   const handleAnswerSelection = (answer) => {
     setSelectedAnswer(answer);
-    if (quizData.length > 0 && quizData[currentQuestion]?.correct === answer) {
-      setScore((prev) => prev + 1);
+    if (quizData.length > 0) {
+      const currentQ = quizData[currentQuestion];
+      if (currentQ.options) {
+        if (currentQ.correct === answer) {
+          setScore((prev) => prev + 1);
+        }
+      } else {
+        if (
+          currentQ.answer &&
+          currentQ.answer.toLowerCase() === answer.toLowerCase()
+        ) {
+          setScore((prev) => prev + 1);
+        }
+      }
     }
   };
 
   const handleNext = () => {
+    if (quizData[currentQuestion]?.answer) {
+      if (
+        selectedAnswer &&
+        selectedAnswer.toString().trim() === quizData[currentQuestion].answer
+      ) {
+        setScore((prev) => prev + 1);
+      }
+    }
+
     if (currentQuestion < quizData.length - 1) {
       setCurrentQuestion((prev) => prev + 1);
-      setSelectedAnswer(null);
+      setSelectedAnswer("");
+      setIsSubmitted(false);
       setTimer(30);
     } else {
       setQuizCompleted(true);
     }
   };
-
   const handlePrevious = () => {
     if (currentQuestion > 0) {
       setCurrentQuestion((prev) => prev - 1);
@@ -68,6 +90,10 @@ const QuizApp = () => {
 
   const handleReload = () => {
     window.location.reload();
+  };
+
+  const handleSubmit = () => {
+    setIsSubmitted(true);
   };
 
   return (
@@ -127,11 +153,25 @@ const QuizApp = () => {
                     )}
                   </div>
                 ) : (
-                  <input
-                    type="number"
-                    className="p-2 border rounded-lg w-full mt-4"
-                    placeholder="Type your answer"
-                  />
+                  <div className="mt-4">
+                    <input
+                      type="text"
+                      className="p-2 border rounded-lg w-full mt-4"
+                      placeholder="Type your answer"
+                      value={selectedAnswer || ""}
+                      onChange={(e) => setSelectedAnswer(e.target.value)}
+                      disabled={isSubmitted}
+                    />
+                    <button
+                      className={`p-2 bg-blue-500 text-white rounded-lg mt-3 ${
+                        isSubmitted ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                      onClick={handleSubmit}
+                      disabled={isSubmitted}
+                    >
+                      Submit
+                    </button>
+                  </div>
                 )}
 
                 {/*  Timer Progress Bar */}
