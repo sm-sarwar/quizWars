@@ -128,7 +128,7 @@ const QuizApp = () => {
                   </div>
                 ) : (
                   <input
-                    type="text"
+                    type="number"
                     className="p-2 border rounded-lg w-full mt-4"
                     placeholder="Type your answer"
                   />
